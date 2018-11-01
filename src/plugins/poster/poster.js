@@ -123,7 +123,7 @@ export default class PosterPlugin extends UIContainerPlugin {
   }
 
   showPoster() {
-    this.container.disableMediaControl()
+    // this.container.disableMediaControl()
     this.$el.show()
   }
 
@@ -148,7 +148,7 @@ export default class PosterPlugin extends UIContainerPlugin {
 
     this.container.$el.append(this.el)
     this.$playWrapper = this.$el.find('.play-wrapper')
-    this.$playWrapper.append(playIcon)
+    // this.$playWrapper.append(playIcon)
     this.$playButton = this.$playWrapper.find('svg')
     this.$playButton.addClass('poster-icon')
     this.$playButton.attr('data-poster', '')

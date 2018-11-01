@@ -23,10 +23,10 @@
 
   .media-control-background[data-background] {
     position: absolute;
-    height: 40%;
+    height: 22%;
     width: 100%;
     bottom: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
     transition: opacity 0.6s ease-out;
   }
 
@@ -35,7 +35,7 @@
     letter-spacing: 0;
     speak: none;
     color: #fff;
-    opacity: 0.5;
+    opacity: 1;
     vertical-align: middle;
     text-align: left;
     transition: all 0.1s ease;
@@ -43,7 +43,7 @@
 
   .media-control-icon:hover {
     color: white;
-    opacity: 0.75;
+    opacity: 1;
     text-shadow: rgba(255,255,255,0.8) 0 0 5px;
   }
 
@@ -63,7 +63,7 @@
 
   .media-control-layer[data-controls] {
     position: absolute;
-    bottom: 7px;
+    bottom: 0px;
     width: 100%;
     height: 32px;
     font-size: 0;
@@ -103,7 +103,9 @@
 
       svg {
         width: 100%;
-        height: 22px;
+        height: 16px;
+        position: relative;
+        top: -1px;
         path { fill: white; }
       }
 
@@ -164,7 +166,8 @@
     .media-control-indicator {
       &[data-position], &[data-duration] {
         display: inline-block;
-        font-size: 10px;
+        font-size: 13px;
+        text-shadow: 0 0 2px rgba(0,0,0,.5);
         color: white;
         cursor: default;
         line-height: 32px;
@@ -175,27 +178,29 @@
       }
       &[data-duration] {
         &:before { content: "|"; margin-right: 7px; }
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 1);
         margin-right: 6px;
       }
     }
 
     .bar-container[data-seekbar] {
       position: absolute;
-      top: -20px;
+      top: -17px;
       left: 0;
       display: inline-block;
       vertical-align: middle;
       width: 100%;
       height: 25px;
       cursor: pointer;
+      padding: 0 10px;
 
       .bar-background[data-seekbar] {
         width: 100%;
-        height: 1px;
+        height: 3px;
         position: relative;
         top: 12px;
         background-color: #666666;
+        opacity: 0.75;
 
         .bar-fill-1[data-seekbar] {
           position: absolute;
@@ -213,7 +218,7 @@
           left: 0;
           width: 0;
           height: 100%;
-          background-color: #005aff;
+          background-color: #039be5;
           transition: all 0.1s ease-out;
         }
 
@@ -225,13 +230,16 @@
           height: 7px;
           background-color: rgba(255,255,255,0.5);
           transition: opacity 0.1s ease;
+          display: none;
         }
       }
 
       &:hover {
         .bar-background[data-seekbar] {
+          height: 4px !important;
           .bar-hover[data-seekbar] {
             opacity: 1;
+            
           }
         }
       }
@@ -256,6 +264,7 @@
         height: 20px;
         opacity: 1;
         transition: all 0.1s ease-out;
+        display: none;
 
         .bar-scrubber-icon[data-seekbar] {
           position: absolute;
@@ -264,7 +273,7 @@
           width: 8px;
           height: 8px;
           border-radius: 10px;
-          box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.2);
+          // box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.2);
           background-color: white;
         }
       }
@@ -288,8 +297,8 @@
           box-sizing: content-box;
           width: 32px;
           height: 32px;
-          opacity: 0.5;
-          &:hover { opacity: 0.75; }
+          opacity: 1;
+          &:hover { opacity: 1; }
 
           svg {
             height: 24px;
@@ -377,7 +386,7 @@
           width: 4px;
           padding-left: 2px;
           height: 12px;
-          opacity: 0.5;
+          opacity: 1;
           box-shadow: inset 2px 0 0 white;
           transition: transform .2s ease-out;
 

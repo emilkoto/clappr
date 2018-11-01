@@ -71,6 +71,7 @@ export default class MediaControl extends UIObject {
 
   constructor(options) {
     super(options)
+
     this.persistConfig = this.options.persistConfig
     this.container = options.container
     this.currentPositionValue = null
@@ -256,7 +257,7 @@ export default class MediaControl extends UIObject {
   }
 
   togglePlayPause() {
-    if (this.container.isPlaying())
+    if (this.container && this.container.isPlaying())
       this.container.pause()
     else
       this.container.play()
@@ -265,7 +266,7 @@ export default class MediaControl extends UIObject {
   }
 
   togglePlayStop() {
-    if (this.container.isPlaying())
+    if (this.container && this.container.isPlaying())
       this.container.stop()
     else
       this.container.play()
@@ -470,14 +471,17 @@ export default class MediaControl extends UIObject {
   show(event) {
     if (this.disabled)
       return
-
     const timeout = 2000
+
+
+
     if (!event || (event.clientX !== this.lastMouseX && event.clientY !== this.lastMouseY) || navigator.userAgent.match(/firefox/i)) {
       clearTimeout(this.hideId)
       this.$el.show()
       this.trigger(Events.MEDIACONTROL_SHOW, this.name)
       this.$el.removeClass('media-control-hide')
-      this.hideId = setTimeout(() => this.hide(), timeout)
+      if (this.container && this.container.isPlaying())
+        this.hideId = setTimeout(() => this.hide(), timeout);
       if (event) {
         this.lastMouseX = event.clientX
         this.lastMouseY = event.clientY
@@ -488,8 +492,11 @@ export default class MediaControl extends UIObject {
   hide(delay = 0) {
     if (!this.isVisible()) return
 
-    const timeout = delay || 2000
+    const timeout = delay || 9999000
     clearTimeout(this.hideId)
+    if (!this.container || (this.container && !this.container.isPlaying())) return;
+
+
     if (!this.disabled && this.options.hideMediaControl === false)
       return
 
@@ -549,8 +556,13 @@ export default class MediaControl extends UIObject {
   }
 
   resetIndicators() {
-    this.displayedPosition = this.$position.text()
-    this.displayedDuration = this.$duration.text()
+    if (this.options.staticDuration !== undefined && this.options.staticDuration) {
+      this.displayedPosition = this.$position.text('00:00')
+      this.displayedDuration = this.$duration.text(formatTime(this.options.staticDuration))
+    } else {
+      this.displayedPosition = this.$position.text()
+      this.displayedDuration = this.$duration.text()
+    }
   }
 
   initializeIcons() {
@@ -607,7 +619,7 @@ export default class MediaControl extends UIObject {
     this.bindKeyAndShow('shift right', () => this.seekRelative(10))
     this.bindKeyAndShow('shift ctrl left', () => this.seekRelative(-15))
     this.bindKeyAndShow('shift ctrl right', () => this.seekRelative(15))
-    const keys = ['1','2','3','4','5','6','7','8','9','0']
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
     keys.forEach((i) => { this.bindKeyAndShow(i, () => this.settings.seekEnabled && this.container.seekPercentage(i * 10)) })
   }
 
@@ -620,7 +632,7 @@ export default class MediaControl extends UIObject {
       this.kibo.off('shift right')
       this.kibo.off('shift ctrl left')
       this.kibo.off('shift ctrl right')
-      this.kibo.off(['1','2','3','4','5','6','7','8','9','0'])
+      this.kibo.off(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'])
     }
   }
 
@@ -660,7 +672,7 @@ export default class MediaControl extends UIObject {
 
   render() {
     const timeout = this.options.hideMediaControlDelay || 2000
-    this.$el.html(this.template({ settings: this.settings }))
+    this.$el.html(this.template({ settings: this.settings, duration: 10, position: 0 }))
     this.createCachedElements()
     this.$playPauseToggle.addClass('paused')
     this.$playStopToggle.addClass('stopped')
@@ -675,9 +687,9 @@ export default class MediaControl extends UIObject {
     // Display mute/unmute icon only if Safari version >= 10
     if (Browser.isSafari && Browser.isMobile) {
       if (Browser.version < 10)
-        this.$volumeContainer.css('display','none')
+        this.$volumeContainer.css('display', 'none')
       else
-        this.$volumeBarContainer.css('display','none')
+        this.$volumeBarContainer.css('display', 'none')
 
     }
 
@@ -709,6 +721,6 @@ export default class MediaControl extends UIObject {
   }
 }
 
-MediaControl.extend = function(properties) {
+MediaControl.extend = function (properties) {
   return extend(MediaControl, properties)
 }
