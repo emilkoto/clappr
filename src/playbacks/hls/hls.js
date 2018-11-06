@@ -10,7 +10,7 @@ import { now, assign } from '../../base/utils'
 import Log from '../../plugins/log'
 import PlayerError from '../../components/error'
 
-const AUTO = -1
+const AUTO = 4
 
 export default class HLS extends HTML5VideoPlayback {
   get name() { return 'hls' }
@@ -18,11 +18,14 @@ export default class HLS extends HTML5VideoPlayback {
   get levels() { return this._levels || [] }
 
   get currentLevel() {
-    if (this._currentLevel === null || this._currentLevel === undefined)
-      return AUTO
-    else
-      return this._currentLevel //0 is a valid level ID
 
+    if (this._currentLevel === null || this._currentLevel === undefined) {
+      console.log('aqui', AUTO);
+      return AUTO
+    } else {
+      console.log('aqui', this._currentLevel );
+      return this._currentLevel //0 is a valid level ID
+    }
   }
 
   get isReady() {
@@ -116,7 +119,7 @@ export default class HLS extends HTML5VideoPlayback {
     // Should be 2 or higher, or 0 to disable. Should only need to be increased above 2 if more than one segment is
     // removed from the start of the playlist at a time. E.g if the playlist is cached for 10 seconds and new chunks are
     // added/removed every 5.
-    this._extrapolatedWindowNumSegments = !this.options.playback || typeof (this.options.playback.extrapolatedWindowNumSegments) === 'undefined' ? 2 :  this.options.playback.extrapolatedWindowNumSegments
+    this._extrapolatedWindowNumSegments = !this.options.playback || typeof (this.options.playback.extrapolatedWindowNumSegments) === 'undefined' ? 2 : this.options.playback.extrapolatedWindowNumSegments
 
     this._playbackType = Playback.VOD
     this._lastTimeUpdate = { current: 0, total: 0 }
@@ -158,7 +161,7 @@ export default class HLS extends HTML5VideoPlayback {
     this._hls.on(HLSJS.Events.MEDIA_ATTACHED, () => this._hls.loadSource(this.options.src))
     this._hls.on(HLSJS.Events.LEVEL_LOADED, (evt, data) => this._updatePlaybackType(evt, data))
     this._hls.on(HLSJS.Events.LEVEL_UPDATED, (evt, data) => this._onLevelUpdated(evt, data))
-    this._hls.on(HLSJS.Events.LEVEL_SWITCHING, (evt,data) => this._onLevelSwitch(evt, data))
+    this._hls.on(HLSJS.Events.LEVEL_SWITCHING, (evt, data) => this._onLevelSwitch(evt, data))
     this._hls.on(HLSJS.Events.FRAG_LOADED, (evt, data) => this._onFragmentLoaded(evt, data))
     this._hls.on(HLSJS.Events.ERROR, (evt, data) => this._onHLSJSError(evt, data))
     this._hls.on(HLSJS.Events.SUBTITLE_TRACK_LOADED, (evt, data) => this._onSubtitleLoaded(evt, data))
@@ -247,7 +250,7 @@ export default class HLS extends HTML5VideoPlayback {
       time = this.getDuration()
     }
     // assume live if time within 3 seconds of end of stream
-    this.dvrEnabled && this._updateDvr(time < this.getDuration()-3)
+    this.dvrEnabled && this._updateDvr(time < this.getDuration() - 3)
     time += this._startTime
     super.seek(time)
   }
@@ -287,41 +290,41 @@ export default class HLS extends HTML5VideoPlayback {
       if (this._recoverAttemptsRemaining > 0) {
         this._recoverAttemptsRemaining -= 1
         switch (data.type) {
-        case HLSJS.ErrorTypes.NETWORK_ERROR:
-          switch (data.details) {
-          // The following network errors cannot be recovered with HLS.startLoad()
-          // For more details, see https://github.com/video-dev/hls.js/blob/master/doc/design.md#error-detection-and-handling
-          // For "level load" fatal errors, see https://github.com/video-dev/hls.js/issues/1138
-          case HLSJS.ErrorDetails.MANIFEST_LOAD_ERROR:
-          case HLSJS.ErrorDetails.MANIFEST_LOAD_TIMEOUT:
-          case HLSJS.ErrorDetails.MANIFEST_PARSING_ERROR:
-          case HLSJS.ErrorDetails.LEVEL_LOAD_ERROR:
-          case HLSJS.ErrorDetails.LEVEL_LOAD_TIMEOUT:
-            Log.error('hlsjs: unrecoverable network fatal error.', { evt, data })
+          case HLSJS.ErrorTypes.NETWORK_ERROR:
+            switch (data.details) {
+              // The following network errors cannot be recovered with HLS.startLoad()
+              // For more details, see https://github.com/video-dev/hls.js/blob/master/doc/design.md#error-detection-and-handling
+              // For "level load" fatal errors, see https://github.com/video-dev/hls.js/issues/1138
+              case HLSJS.ErrorDetails.MANIFEST_LOAD_ERROR:
+              case HLSJS.ErrorDetails.MANIFEST_LOAD_TIMEOUT:
+              case HLSJS.ErrorDetails.MANIFEST_PARSING_ERROR:
+              case HLSJS.ErrorDetails.LEVEL_LOAD_ERROR:
+              case HLSJS.ErrorDetails.LEVEL_LOAD_TIMEOUT:
+                Log.error('hlsjs: unrecoverable network fatal error.', { evt, data })
+                formattedError = this.createError(error)
+                this.trigger(Events.PLAYBACK_ERROR, formattedError)
+                this.stop()
+                break
+              default:
+                Log.warn('hlsjs: trying to recover from network error.', { evt, data })
+                error.level = PlayerError.Levels.WARN
+                this.createError(error)
+                this._hls.startLoad()
+                break
+            }
+            break
+          case HLSJS.ErrorTypes.MEDIA_ERROR:
+            Log.warn('hlsjs: trying to recover from media error.', { evt, data })
+            error.level = PlayerError.Levels.WARN
+            this.createError(error)
+            this._recover(evt, data, error)
+            break
+          default:
+            Log.error('hlsjs: could not recover from error.', { evt, data })
             formattedError = this.createError(error)
             this.trigger(Events.PLAYBACK_ERROR, formattedError)
             this.stop()
             break
-          default:
-            Log.warn('hlsjs: trying to recover from network error.', { evt, data })
-            error.level = PlayerError.Levels.WARN
-            this.createError(error)
-            this._hls.startLoad()
-            break
-          }
-          break
-        case HLSJS.ErrorTypes.MEDIA_ERROR:
-          Log.warn('hlsjs: trying to recover from media error.', { evt, data })
-          error.level = PlayerError.Levels.WARN
-          this.createError(error)
-          this._recover(evt, data, error)
-          break
-        default:
-          Log.error('hlsjs: could not recover from error.', { evt, data })
-          formattedError = this.createError(error)
-          this.trigger(Events.PLAYBACK_ERROR, formattedError)
-          this.stop()
-          break
         }
       } else {
         Log.error('hlsjs: could not recover from error after maximum number of attempts.', { evt, data })
@@ -428,7 +431,7 @@ export default class HLS extends HTML5VideoPlayback {
 
   _fillLevels() {
     this._levels = this._hls.levels.map((level, index) => {
-      return { id: index, level: level, label: `${level.bitrate/1000}Kbps` }
+      return { id: index, level: level, label: `${level.bitrate / 1000}Kbps` }
     })
     this.trigger(Events.PLAYBACK_LEVELS_AVAILABLE, this._levels)
   }
@@ -462,7 +465,7 @@ export default class HLS extends HTML5VideoPlayback {
         // set the correlation to map to middle of the extrapolation window
         this._localStartTimeCorrelation = {
           local: this._now,
-          remote: (fragments[0].start + (this._extrapolatedWindowDuration/2)) * 1000
+          remote: (fragments[0].start + (this._extrapolatedWindowDuration / 2)) * 1000
         }
       } else {
         // check if the correlation still works
@@ -613,10 +616,10 @@ export default class HLS extends HTML5VideoPlayback {
   }
 }
 
-HLS.canPlay = function(resource, mimeType) {
+HLS.canPlay = function (resource, mimeType) {
   const resourceParts = resource.split('?')[0].match(/.*\.(.*)$/) || []
   const isHls = ((resourceParts.length > 1 && resourceParts[1].toLowerCase() === 'm3u8') ||
-        mimeType === 'application/x-mpegURL' || mimeType === 'application/vnd.apple.mpegurl')
+    mimeType === 'application/x-mpegURL' || mimeType === 'application/vnd.apple.mpegurl')
 
   return !!(HLSJS.isSupported() && isHls)
 }

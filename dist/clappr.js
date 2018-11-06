@@ -15243,7 +15243,7 @@ var _error2 = _interopRequireDefault(_error);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var AUTO = -1; // Copyright 2014 Globo.com Player authors. All rights reserved.
+var AUTO = 4; // Copyright 2014 Globo.com Player authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -15262,7 +15262,14 @@ var HLS = function (_HTML5VideoPlayback) {
   }, {
     key: 'currentLevel',
     get: function get() {
-      if (this._currentLevel === null || this._currentLevel === undefined) return AUTO;else return this._currentLevel; //0 is a valid level ID
+
+      if (this._currentLevel === null || this._currentLevel === undefined) {
+        console.log('aqui', AUTO);
+        return AUTO;
+      } else {
+        console.log('aqui', this._currentLevel);
+        return this._currentLevel; //0 is a valid level ID
+      }
     },
     set: function set(id) {
       this._currentLevel = id;
